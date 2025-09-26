@@ -1,52 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tramites - Cloudflare Turnstile</title>
-    <script
-      src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-      defer
-    ></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
-      rel="stylesheet"
-    />
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tramites - Turnstile</title>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
-      body {
-        font-family: "Roboto", sans-serif;
-      }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .loading {
+            margin-bottom: 20px;
+            color: #666;
+        }
     </style>
-  </head>
-  <body
-    class="min-h-screen bg-gradient-to-br from-blue-400 to-blue-600 flex flex-col items-center justify-center p-4"
-  >
-    <div class="bg-white/10 backdrop-blur-lg rounded-xl p-8 shadow-lg">
-      <h1 class="text-3xl font-bold text-white text-center mb-4">
-        Verificando Datos...
-      </h1>
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"
-      ></div>
-      <div id="turnstile-container"></div>
+</head>
+<body>
+    <div class="container">
+        <h1>Verificación de Seguridad</h1>
+        <div class="loading">Cargando verificación...</div>
+        <div class="cf-turnstile" 
+             data-sitekey="1x00000000000000000000AA" 
+             data-theme="light" 
+             data-size="normal" 
+             data-callback="onTurnstileSuccess" 
+             data-error-callback="onTurnstileError" 
+             data-expired-callback="onTurnstileExpired"></div>
     </div>
-
+    
     <script>
-      window.onload = function () {
-        turnstile.render("#turnstile-container", {
-          sitekey: "1x00000000000000000000AA", // Clave de prueba de Turnstile
-          callback: function (token) {
-            console.log("Turnstile token:", token);
+        function onTurnstileSuccess(token) {
+            console.log('Turnstile token generado:', token);
             if (window.flutter_inappwebview) {
-              window.flutter_inappwebview.callHandler("recaptchaToken", token);
+                window.flutter_inappwebview.callHandler('turnstileToken', token);
             }
-          },
-          "error-callback": function (errorCode) {
-            console.error("Turnstile error:", errorCode);
-          },
+        }
+        
+        function onTurnstileError(error) {
+            console.error('Error en Turnstile:', error);
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('turnstileError', error);
+            }
+        }
+        
+        function onTurnstileExpired() {
+            console.log('Token de Turnstile expirado');
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('turnstileExpired');
+            }
+        }
+        
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loading = document.querySelector('.loading');
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }, 1000);
         });
-      };
     </script>
-  </body>
+</body>
 </html>
